@@ -1,2 +1,3 @@
 .virtual
-
+config.py
+__pycache__/
