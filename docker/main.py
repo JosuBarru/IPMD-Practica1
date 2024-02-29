@@ -55,13 +55,7 @@ def trafico(autopista):
         data = [x for x in data['incidences'] if x['road'] == autopista]
         return jsonify(data)
     else:
-        return jsonify({
-    "mensaje":"No tengo datos de la autopista b-12, limita tu consulta", 
-    "valores validos": ["A-1", 
-      "AP-1", 
-      "A-8", 
-      "AP-68", 
-      "A-15" ]})
+        return jsonify({"error": "Autopista no valida"})
 
 
 @app.route('/tiempo/<ciudad>', methods=['GET'])
