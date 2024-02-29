@@ -36,6 +36,7 @@ from config import apikey
 
 
 app = Flask(__name__)
+app.json.sort_keys = False
 
 @app.route('/test', methods=['GET'])
 def test():
@@ -61,14 +62,30 @@ def trafico(autopista):
 def tiempo(ciudad):
     ciudad = ciudad.upper()
     ciudades = ['BILBAO', 'DONOSTIA', 'VITORIA']
+    mapping = {
+        'BILBAO': '48020',
+        'DONOSTIA': '20069',
+        'VITORIA': '01059'
+    }
+
     if ciudad in ciudades:
-        url = 'https://opendata.aemet.es/opendata/api/prediccion/especifica/municipio/diaria/' + ciudad
+        url = 'https://opendata.aemet.es/opendata/api/prediccion/especifica/municipio/diaria/' + mapping[ciudad]
         headers = {
             'accept': 'application/json',
             'api_key': apikey
         }
         response = requests.get(url, headers=headers)
         data = response.json()
+        data = requests.get(data['datos'])
+        # devuelveme la informacion sobre temperaturas maximas y minimas
+        data = data.json()
+        max = data[0]['prediccion']['dia'][0]['temperatura']['maxima']
+        min = data[0]['prediccion']['dia'][0]['temperatura']['minima']
+        data = {
+            'mensaje': "Prevision de temperaturas en " + ciudad.upper(),
+            'maxima': max,
+            'minima': min
+        }
         return jsonify(data)
     else:
         return jsonify({"error": "Ciudad no valida"})
