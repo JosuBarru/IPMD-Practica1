@@ -5,7 +5,7 @@ services:
       dockerfile: Dockerfile
     environment:
       - FLASK_APP=main.py
-    command: flask run --host=0.0.0.0 --port=5000
+    command: gunicorn -w 4 -b 0.0.0.0:5000 main:app
     volumes:
       - ./docker:/app/docker
 
@@ -15,7 +15,7 @@ services:
       dockerfile: Dockerfile
     environment:
       - FLASK_APP=main.py
-    command: flask run --host=0.0.0.0 --port=5001
+    command: gunicorn -w 4 -b 0.0.0.0:5001 main:app
     volumes:
       - ./docker:/app/docker
     deploy:
@@ -27,7 +27,7 @@ services:
       dockerfile: Dockerfile
     environment:
       - FLASK_APP=main.py
-    command: flask run --host=0.0.0.0 --port=5002
+    command: gunicorn -w 4 -b 0.0.0.0:5002 main:app
     volumes:
       - ./docker:/app/docker
     deploy:
