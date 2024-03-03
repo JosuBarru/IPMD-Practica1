@@ -1,0 +1,45 @@
+services:
+  test:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - FLASK_APP=main.py
+    command: flask run --host=0.0.0.0 --port=5000
+    volumes:
+      - ./docker:/app/docker
+
+  trafico:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - FLASK_APP=main.py
+    command: flask run --host=0.0.0.0 --port=5001
+    volumes:
+      - ./docker:/app/docker
+    deploy:
+      replicas: 3
+
+  tiempo:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - FLASK_APP=main.py
+    command: flask run --host=0.0.0.0 --port=5002
+    volumes:
+      - ./docker:/app/docker
+    deploy:
+      replicas: 2
+
+  nginx:
+    image: nginx:latest
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - test
+      - trafico
+      - tiempo
