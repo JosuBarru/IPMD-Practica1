@@ -3,21 +3,13 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    environment:
-      - FLASK_APP=main.py
     command: gunicorn -w 4 -b 0.0.0.0:5000 main:app
-    volumes:
-      - ./docker:/app/docker
 
   trafico:
     build:
       context: .
       dockerfile: Dockerfile
-    environment:
-      - FLASK_APP=main.py
     command: gunicorn -w 4 -b 0.0.0.0:5001 main:app
-    volumes:
-      - ./docker:/app/docker
     deploy:
       replicas: 3
 
@@ -26,10 +18,8 @@ services:
       context: .
       dockerfile: Dockerfile
     environment:
-      - FLASK_APP=main.py
+      - APIKEY
     command: gunicorn -w 4 -b 0.0.0.0:5002 main:app
-    volumes:
-      - ./docker:/app/docker
     deploy:
       replicas: 2
 
