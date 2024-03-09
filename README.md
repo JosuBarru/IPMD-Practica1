@@ -37,4 +37,15 @@ https://kubernetes.io/docs/tasks/access-application-cluster/ingress-minikube/
 
 ### Implementación en servidor cloud
 
-Para ejecutar la aplicación en un servidor cloud se ha usado 
+Para ejecutar la aplicación en un servidor cloud se ha usado Microsoft Azure. Para ello, tras crearnos la cuenta de estudiante, hemos creado un grupo de recursos y un clúster de Kubernetes. A continuación, para manejar de manera local el clúster de Kubernetes, hemos instalado la CLI de Azure, hemos hecho login con `az login`, establecido la suscripción del cluster con el comando `az account set --subscription <id> ` y nos descargamos las credenciales del clúster con el comando `az aks get-credentials --resource-group <nombre_grupo> --name <nombre_cluster>`, con esto modificamos el contexto de kubectl para que apunte al clúster de Azure, esto se encuentra en el archivo `~/.kube/config`.
+
+Ahora, al ejecutar `kubectl get nodes` deberíamos ver los nodos del clúster de Azure. [comment]: <> (muestra un ejemplo de ejecución de kubectl get nodes)
+
+```bash
+$ kubectl get nodes
+NAME                                STATUS   ROLES   AGE   VERSION
+aks-agentpool-28800719-vmss000002   Ready    agent   19m   v1.27.9
+aks-agentpool-28800719-vmss000003   Ready    agent   19m   v1.27.9
+```
+
+Podemos ver como el clúster de Azure tiene dos nodos. A
