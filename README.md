@@ -34,3 +34,7 @@ Implementación del servicio de API utilizando un clúster Kubernetes. Se debe p
 
 Se puede considerar una mejora adicional donde se incluya un servicio accesible a través de `/test` que compruebe que el resto de los servicios están en marcha con al menos una instancia.
 https://kubernetes.io/docs/tasks/access-application-cluster/ingress-minikube/
+
+### Implementación en servidor cloud
+
+Para ejecutar la aplicación en un servidor cloud se ha usado 
