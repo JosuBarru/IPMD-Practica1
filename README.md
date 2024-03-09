@@ -33,3 +33,4 @@ Preparación de la aplicación para funcionar con Docker Compose. Se deben ofrec
 Implementación del servicio de API utilizando un clúster Kubernetes. Se debe proporcionar un documento .yaml unificado para la configuración. Se plantean dos versiones: servidores idénticos y servidores especializados. En ambos casos se debe considerar el uso de un balanceador de carga o un recurso ingress según sea necesario.
 
 Se puede considerar una mejora adicional donde se incluya un servicio accesible a través de `/test` que compruebe que el resto de los servicios están en marcha con al menos una instancia.
+https://kubernetes.io/docs/tasks/access-application-cluster/ingress-minikube/
