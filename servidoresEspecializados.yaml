@@ -1,0 +1,150 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: nginx-ingress
+  namespace: default
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: api.example.com
+    http:
+      paths:
+      - path: /test
+        pathType: Prefix
+        backend:
+          service:
+            name: test
+            port:
+              number: 80
+      - path: /trafico
+        pathType: Prefix
+        backend:
+          service:
+            name: trafico
+            port:
+              number: 80
+      - path: /tiempo
+        pathType: Prefix
+        backend:
+          service:
+            name: tiempo
+            port:
+              number: 80 
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx
+      service: test
+  template:
+    metadata:
+      labels:
+        app: nginx
+        service: test
+    spec:
+      containers:
+      - name: test 
+        image: josubarru/ipmd:practica1
+        ports:
+        - containerPort: 80
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: trafico
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: nginx
+      service: trafico
+  template:
+    metadata:
+      labels:
+        app: nginx
+        service: trafico
+    spec:
+      containers:
+      - name: trafico
+        image: josubarru/ipmd:practica1
+        ports:
+        - containerPort: 80
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tiempo 
+spec:
+  replicas: 4 
+  selector:
+    matchLabels:
+      app: nginx
+      service: tiempo
+  template:
+    metadata:
+      labels:
+        app: nginx
+        service: tiempo
+    spec:
+      containers:
+      - name: tiempo 
+        image: josubarru/ipmd:practica1
+        ports:
+        - containerPort: 80
+        envFrom:
+        - secretRef:
+            name: mysecret
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: test
+spec:
+  selector:
+    app: nginx
+    service: test
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: trafico
+spec:
+  selector:
+    app: nginx
+    service: trafico
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: tiempo
+spec:
+  selector:
+    app: nginx
+    service: tiempo
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80
+

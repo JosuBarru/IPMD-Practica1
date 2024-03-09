@@ -32,4 +32,7 @@ spec:
         image: josubarru/ipmd:practica1
         ports:
         - containerPort: 80
+        envFrom:
+        - secretRef:
+            name: mysecret
 

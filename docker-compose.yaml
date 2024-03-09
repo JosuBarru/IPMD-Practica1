@@ -3,13 +3,13 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    command: gunicorn -w 4 -b 0.0.0.0:5000 main:app
+    command: gunicorn -b 0.0.0.0:5000 main:app
 
   trafico:
     build:
       context: .
       dockerfile: Dockerfile
-    command: gunicorn -w 4 -b 0.0.0.0:5001 main:app
+    command: gunicorn -b 0.0.0.0:5001 main:app
     deploy:
       replicas: 3
 
@@ -19,7 +19,7 @@ services:
       dockerfile: Dockerfile
     environment:
       - APIKEY
-    command: gunicorn -w 4 -b 0.0.0.0:5002 main:app
+    command: gunicorn -b 0.0.0.0:5002 main:app
     deploy:
       replicas: 2
 

@@ -1,17 +1,5 @@
-# Use the alpine image
-FROM python:3.9-alpine
+FROM python:3
 
-# Update packages
-RUN apk update && \
-    apk upgrade && \
-    apk add --no-cache bash openssh && \
-    apk add --no-cache --virtual .build-deps build-base libffi-dev openssl-dev
-
-# Install Python and other necessary packages
-RUN apk add --no-cache python3 python3-dev \
-    py-pip build-base libffi-dev openssl-dev
-
-# Set the working directory in the container
 WORKDIR /app
 
 # Copy the requirements file into the container at /app
