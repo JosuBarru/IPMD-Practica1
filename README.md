@@ -1,4 +1,4 @@
-# Índice
+# Trabajo practico 1
 
 1. [Descripción del problema](#descripción-del-problema)
 2. [Parte 1 - Ejecución directa](#parte-1---ejecución-directa)
@@ -63,7 +63,8 @@ nginx-deployment-dc7d787-srq8f   1/1     Running   0          16m
 nginx-deployment-dc7d787-wn29d   1/1     Running   0          16m
 ```
 
-En este caso, al estar trabajando con un servicio cloud y tener un servicio del tipo NodePort, para acceder a la aplicación necesitamos saber la IP pública del nodo y el puerto que se ha asignado al servicio. Para ello, ejecutamos el comando `kubectl get services` y buscamos el servicio que nos interesa.
+En este caso, al estar trabajando con un servicio cloud y tener un servicio del tipo NodePort, para acceder a la aplicación necesitamos saber la IP pública uno de los nodos y el puerto que se ha asignado al servicio. Para ello, ejecutamos el comando `kubectl get services` y buscamos el servicio que nos interesa. No obstante, por defecto los nodos en AKS solo tienen IPs privadas, por lo que los servicios de tipo NodePort no serán accesibles desde fuera del clúster, ver https://learn.microsoft.com/en-us/answers/questions/200402/how-to-publish-services-on-aks-with-nodeport-servi
+
 
 Para la versión de servicios especializados, se ha creado el archivo [serviciosEspecializados.yaml](./serviciosEspecializados.yaml) y se ha desplegado de la misma manera que el anterior.
 
@@ -95,5 +96,13 @@ Una vez hecho esto, podemos volver a ejecutar el comando `kubectl get ingress` y
 ```bash
 $ kubectl get ingress
 NAME            CLASS   HOSTS             ADDRESS         PORTS   AGE
-nginx-ingress   nginx   aplicacion.com   57.151.8.80     80      13m
+nginx-ingress   nginx   aplicacion.com    57.151.8.80     80      13m
+```
+
+Ahora que sabemos la dirección IP, podemos mapear en el archivo /etc/hosts la dirección IP al dominio aplicacion.com, que es el dominio que hemos definido en el archivo [serviciosEspecializados.yaml](./serviciosEspecializados.yaml), y acceder a la aplicación desde el navegador. Para que la aplicación sea accesible por todo el mundo solo nos haria falta contratar un dominio y asignarle la dirección IP que nos ha proporcionado Azure.
+
+```bash
+curl aplicacion.com/tiempo/Bilbao
+{"maxima":16,"mensaje":"Prevision de temperaturas en BILBAO","minima":9}
+```
 
