@@ -37,7 +37,9 @@ https://kubernetes.io/docs/tasks/access-application-cluster/ingress-minikube/
 
 ### Implementación en servidor cloud
 
-Para ejecutar la aplicación en un servidor cloud se ha usado Microsoft Azure. Para ello, tras crearnos la cuenta de estudiante, hemos creado un grupo de recursos y un clúster de Kubernetes. A continuación, para manejar de manera local el clúster de Kubernetes, hemos instalado la CLI de Azure, hemos hecho login con `az login`, establecido la suscripción del cluster con el comando `az account set --subscription <id> ` y nos descargamos las credenciales del clúster con el comando `az aks get-credentials --resource-group <nombre_grupo> --name <nombre_cluster>`, con esto modificamos el contexto de kubectl para que apunte al clúster de Azure, esto se encuentra en el archivo `~/.kube/config`.
+Para ejecutar la aplicación en un servidor cloud se ha usado Microsoft Azure. Para ello, tras crearnos la cuenta de estudiante, hemos creado un grupo de recursos y un clúster de Kubernetes. 
+
+A continuación, para manejar de manera local el clúster de Kubernetes, hemos instalado la CLI de Azure, hemos hecho login con `az login`, establecido la suscripción del cluster con el comando `az account set --subscription <id> ` y nos descargamos las credenciales del clúster con el comando `az aks get-credentials --resource-group <nombre_grupo> --name <nombre_cluster>`, con esto modificamos el contexto de kubectl para que apunte al clúster de Azure, esto se encuentra en el archivo `~/.kube/config`.
 
 Ahora, al ejecutar `kubectl get nodes` deberíamos ver los nodos del clúster de Azure. [comment]: <> (muestra un ejemplo de ejecución de kubectl get nodes)
 
@@ -50,8 +52,9 @@ aks-agentpool-28800719-vmss000003   Ready    agent   19m   v1.27.9
 
 Podemos ver como el clúster de Azure tiene dos nodos. Ahora, para desplegar la aplicación definida en el archivo [serviciosIdenticos.yaml](./serviciosIdenticos.yaml)
 en el clúster de Azure, tan solo tenemos que ejecutar el comando `kubectl apply -f serviciosIdenticos.yaml`.
-Para probar que la aplicación se ha desplegado correctamente, podemos ejecutar el comando `kubectl get pods` para ver los pods que se han creado.
 
+
+Para probar que la aplicación se ha desplegado correctamente, podemos ejecutar el comando `kubectl get pods` para ver los pods que se han creado.
 ```bash
 $ kubectl get pods
 NAME                             READY   STATUS    RESTARTS   AGE
@@ -60,4 +63,13 @@ nginx-deployment-dc7d787-srq8f   1/1     Running   0          16m
 nginx-deployment-dc7d787-wn29d   1/1     Running   0          16m
 ```
 
-En este caso, al estar trabajando con un servicio cloud, no podemos acceder a la IP privada como haciamos con minikube. Necesitamos 
+En este caso, al estar trabajando con un servicio cloud y tener un servicio del tipo NodePort, para acceder a la aplicación necesitamos saber la IP pública del nodo y el puerto que se ha asignado al servicio. Para ello, ejecutamos el comando `kubectl get services` y buscamos el servicio que nos interesa.
+
+Para la versión de servicios especializados, se ha creado el archivo [serviciosEspecializados.yaml](./serviciosEspecializados.yaml) y se ha desplegado de la misma manera que el anterior.
+
+En este caso, tenemos que tener en cuenta que el servicio de tipo Ingress necesita una IP pública para poder acceder a él. Para ello, ejecutamos el comando `kubectl get ingress` y buscamos el servicio que nos interesa.
+
+```bash
+$ kubectl get ingress
+NAME            CLASS   HOSTS             ADDRESS   PORTS   AGE
+nginx-ingress   nginx   aplicacion.com              80      12m
