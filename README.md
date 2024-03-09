@@ -48,4 +48,16 @@ aks-agentpool-28800719-vmss000002   Ready    agent   19m   v1.27.9
 aks-agentpool-28800719-vmss000003   Ready    agent   19m   v1.27.9
 ```
 
-Podemos ver como el clúster de Azure tiene dos nodos. A
+Podemos ver como el clúster de Azure tiene dos nodos. Ahora, para desplegar la aplicación definida en el archivo [serviciosIdenticos.yaml](./serviciosIdenticos.yaml)
+en el clúster de Azure, tan solo tenemos que ejecutar el comando `kubectl apply -f serviciosIdenticos.yaml`.
+Para probar que la aplicación se ha desplegado correctamente, podemos ejecutar el comando `kubectl get pods` para ver los pods que se han creado.
+
+```bash
+$ kubectl get pods
+NAME                             READY   STATUS    RESTARTS   AGE
+nginx-deployment-dc7d787-cxpnh   1/1     Running   0          16m
+nginx-deployment-dc7d787-srq8f   1/1     Running   0          16m
+nginx-deployment-dc7d787-wn29d   1/1     Running   0          16m
+```
+
+En este caso, al estar trabajando con un servicio cloud, no podemos acceder a la IP privada como haciamos con minikube. Necesitamos 
