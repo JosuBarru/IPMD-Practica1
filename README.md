@@ -73,3 +73,27 @@ En este caso, tenemos que tener en cuenta que el servicio de tipo Ingress necesi
 $ kubectl get ingress
 NAME            CLASS   HOSTS             ADDRESS   PORTS   AGE
 nginx-ingress   nginx   aplicacion.com              80      12m
+```
+
+Como podemos ver no se le esta asignando ninguna dirección IP, para solucionar esto hay que recurrir a la [documentación de Azure](https://learn.microsoft.com/en-us/azure/aks/ingress-basic?tabs=azure-cli) y seguir los pasos para asignar una IP estática a nuestro servicio de Ingress.
+
+```bash
+NAMESPACE=ingress-basic
+
+helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+helm repo update
+
+helm install ingress-nginx ingress-nginx/ingress-nginx \
+  --create-namespace \
+  --namespace $NAMESPACE \
+  --set controller.service.annotations."service\.beta\.kubernetes\.io/azure-load-balancer-health-probe-request-path"=/healthz \
+  --set controller.service.externalTrafficPolicy=Local
+```
+
+Una vez hecho esto, podemos volver a ejecutar el comando `kubectl get ingress` y ver que se le ha asignado una dirección IP.
+
+```bash
+$ kubectl get ingress
+NAME            CLASS   HOSTS             ADDRESS         PORTS   AGE
+nginx-ingress   nginx   aplicacion.com   57.151.8.80     80      13m
+
