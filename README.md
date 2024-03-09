@@ -21,12 +21,16 @@ Se deben tener en cuenta consideraciones importantes como el uso de servidores r
 En esta parte se realiza la implementación y pruebas del servicio web utilizando Flask. Se deben realizar todas las pruebas sin utilizar contenedores.
 
 ## Parte 2 - Aplicación en un contenedor
-
-Construcción de una imagen de contenedor que permita la ejecución del servicio web. Se debe proporcionar un Dockerfile para la construcción de la imagen y luego ejecutar el contenedor utilizando el comando `docker run`.
-
+Describir Dockerfile
+```bash
+docker build -t <NombreContenedor> .
+export APIKEY=<APIKEY>
+docker run --rm -d --name=servicio -p 8080:80 -e APIKEY <NombreContenedor>
+```
 ## Parte 3 - Docker compose
 
-Preparación de la aplicación para funcionar con Docker Compose. Se deben ofrecer los servicios `/test`, `/trafico` y `/tiempo` en contenedores separados, permitiendo su escalabilidad. Además, se debe incluir un balanceador de carga basado en un contenedor nginx.
+la regla command https://pythonspeed.com/articles/base-image-python-docker-images/ reemplza CMD en el Dockerfile
+
 
 ## Parte 4 - Kubernetes
 
