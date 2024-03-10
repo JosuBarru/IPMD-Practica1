@@ -18,7 +18,25 @@ Se deben tener en cuenta consideraciones importantes como el uso de servidores r
 
 ## Parte 1 - Ejecución directa
 
-En esta parte se realiza la implementación y pruebas del servicio web utilizando Flask. Se deben realizar todas las pruebas sin utilizar contenedores.
+## Parte 1 - Ejecución directa
+
+En esta sección se realiza la implementación y pruebas del servicio web utilizando Flask, para posteriormente migrarlo a Gunicorn. Todas las pruebas se realizan sin utilizar contenedores. Para esta tarea se ha creado el archivo [main.py](./main.py). El programa está dividido en tres partes:
+
+- **Test**: una función simple que permite verificar rápidamente el funcionamiento del servidor.
+- **Tráfico**: una función que, dado el nombre de una autopista de la lista de autopistas disponibles, accede a las incidencias de esta y las devuelve.
+- **Tiempo**: una función que devuelve las temperaturas máximas y mínimas de alguna de las tres capitales de Euskadi. Para ello, simplemente se proporciona el nombre de la ciudad, que se mapea al código correspondiente y se accede a los valores de las temperaturas en AEMET. Además, esta función utiliza la función `get_api_key()`, que accede al valor de la API key utilizando la variable de entorno `APIKEY`. Esto cobrará más sentido en las siguientes partes del proyecto, donde la trataremos como un secreto en Docker. Por el momento, es importante tener en cuenta que para poder ejecutarla, primero debemos hacer `export APIKEY=<APIKEY>`.
+
+Para ejecutar nuestro programa con flask en el puerto 8080 debemos hacer lo siguiente:
+
+```bash
+flask --app main run --port=8080 
+```
+
+Si queremos hacerlo con gunicorn:
+```bash
+gunicorn -b 0.0.0.0:8080 main:app
+```
+
 
 ## Parte 2 - Aplicación en un contenedor
 Describir Dockerfile
