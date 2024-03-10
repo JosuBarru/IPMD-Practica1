@@ -1,10 +1,12 @@
 services:
+  # Servicio para la prueba de la aplicación
   test:
     build:
       context: .
       dockerfile: Dockerfile
     command: gunicorn -b 0.0.0.0:5000 main:app
 
+  # Servicio para el tráfico, con 3 réplicas
   trafico:
     build:
       context: .
@@ -13,23 +15,26 @@ services:
     deploy:
       replicas: 3
 
+  # Servicio para la gestión del tiempo, con 2 réplicas
   tiempo:
     build:
       context: .
       dockerfile: Dockerfile
     environment:
-      - APIKEY
+      - APIKEY  # Coge la variable de entorno del anfitrion que se llame igual
     command: gunicorn -b 0.0.0.0:5002 main:app
     deploy:
       replicas: 2
 
+  # Servicio para el servidor proxy Nginx
   nginx:
     image: nginx:latest
     ports:
-      - "8080:80"
+      - "8080:80"  # Mapeo de puerto del host al contenedor
     volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx.conf:/etc/nginx/nginx.conf  # Montaje del archivo de configuración de Nginx
     depends_on:
-      - test
-      - trafico
-      - tiempo
+      - test  # Dependencia del servicio de prueba
+      - trafico  # Dependencia del servicio de tráfico
+      - tiempo  # Dependencia del servicio de tiempo
+

@@ -22,7 +22,7 @@ En esta sección se realiza la implementación y pruebas del servicio web utiliz
 
 - **test()**: una función simple que permite verificar rápidamente el funcionamiento del servidor.
 - **trafico()**: una función que, dado el nombre de una autopista de la lista de autopistas disponibles, accede a las incidencias de esta y las devuelve.
-- **tiempo()**: una función que devuelve las temperaturas máximas y mínimas de alguna de las tres capitales de Euskadi. Para ello, simplemente se proporciona el nombre de la ciudad, que se mapea al código correspondiente y se accede a los valores de las temperaturas en AEMET. Además, esta función utiliza la función `get_api_key()`, que accede al valor de la API key utilizando la variable de entorno `APIKEY`. Esto cobrará más sentido en las siguientes partes del proyecto, donde la trataremos como un secreto en Docker. Por el momento, es importante tener en cuenta que para poder ejecutarla, primero debemos hacer `export APIKEY=<APIKEY>`.
+- **tiempo()**: una función que devuelve las temperaturas máximas y mínimas de alguna de las tres capitales de Euskadi. Para ello, simplemente se proporciona el nombre de la ciudad, que se mapea al código correspondiente y se accede a los valores de las temperaturas en AEMET. Además, esta función utiliza la función `get_api_key()`, que accede al valor de la API key utilizando la variable de entorno `APIKEY`. Por tanto, es importante tener en cuenta que para poder ejecutarla, primero debemos hacer `export APIKEY=<APIKEY>`.
 
 Para ejecutar nuestro programa con flask en el puerto 8080 debemos hacer lo siguiente:
 
@@ -39,7 +39,7 @@ gunicorn -b 0.0.0.0:8080 main:app
 ## Parte 2 - Aplicación en un contenedor
 En esta parte debíamos construir una imagen de contenedor que permita la ejecución de la aplicación anterior, usando un Dockerfile. Por tanto, hemos creado el [Dockerfile](./Dockerfile) correspondiente. Esto es lo que hace:
 
-1. Se elige la imagen base de Python 3, que esta basada en debian, desde la que se construirá la imagen.
+1. Se elige la imagen base de Python 3, que esta basada en debian, desde la que se construirá la imagen. Hemos elgido esta imagen ya que hemos visto en [este articulo](https://pythonspeed.com/articles/base-image-python-docker-images/) que Alpine puede dar problemas.
 2. Se establece el directorio de trabajo dentro del contenedor en `/app`.
 3. Se copian los archivos [main.py](./main.py) y [requirements.txt](./requirements.txt) desde el directorio de construcción del contexto de Docker al directorio `/app` dentro del contenedor. En `requirements.txt` se encuentran todas las dependencias que necesitaremos para que todo funcione correctamente.
 4. Se instalan las dependencias definidas en `requirements.txt` utilizando pip, asegurando que todas las bibliotecas necesarias estén disponibles para el proyecto.
@@ -54,9 +54,65 @@ export APIKEY=<APIKEY>
 docker run --rm -d --name=servicio -p 8080:80 -e APIKEY <NombreContenedor>
 ```
 ## Parte 3 - Docker compose
+Preparar la aplicación anterior para su funcionamiento con docker compose, teniendo en cuenta estas restricciones:
+- El servicio /test, el servicio /trafico y el servicio /tiempo será ofrecido por contenedores separados, basados
+todos ellos en la misma imagen
+- El servicio /trafico y el servicio /tiempo deben ser escalables, y hacerlo por separado (por ejemplo, 3
+instancias de /trafico y 2 de /tiempo)
+- Todo el sistema debe ponerse en marcha con un fichero compose.yaml único
+Para poder distribuir el tráfico entre diferentes instancias, será necesario emplear un balanceador de carga basado
+en un contenedor nginx, cuya configuración y puesta en marcha debe formar parte del fichero compose.yaml.
 
-la regla command https://pythonspeed.com/articles/base-image-python-docker-images/ reemplza CMD en el Dockerfile
 
+Para completar esta parte hemos creado dos archivos: [docker-compose.yaml](./docker-compose.yaml) y [nginx.conf](./nginx.conf).
+
+El archivo `docker-compose.yaml` define varios servicios que se ejecutarán en contenedores Docker. Esta es una descripción del archivo:
+
+Antes de nada, aclarar que utilizamos la regla command, que reemplza CMD en el Dockerfile, de estamanera podemos asignar distintos puertos a cada servicio.
+
+- **Servicio "test"**:
+  - Se define para construir una imagen utilizando el Dockerfile en el contexto actual.
+  - Luego se ejecuta el comando `gunicorn -b 0.0.0.0:5000 main:app` dentro del contenedor creado a partir de esta imagen. Esto probablemente está destinado a iniciar una aplicación web en el puerto 5000.
+
+- **Servicio "trafico"**:
+  - Similar al servicio "test", también construye una imagen utilizando el mismo Dockerfile y contexto.
+  - Ejecuta el mismo comando `gunicorn -b 0.0.0.0:5001 main:app`, pero esta vez en el puerto 5001. Además, se especifica que este servicio se desplegará con 3 replicas.
+
+- **Servicio "tiempo"**:
+  - Construye otra imagen utilizando el mismo Dockerfile y contexto.
+  - Exporta la variable de entorno `APIKEY` del anfitrión.
+  - Ejecuta `gunicorn -b 0.0.0.0:5002 main:app`. Además, este servicio se desplegará con 2 replicas.
+
+- **Servicio "nginx"**:
+  - Utiliza la imagen `nginx:latest`.
+  - Mapea el puerto 8080 del host al puerto 80 del contenedor.
+  - Monta el archivo `nginx.conf` local en el contenedor en la ruta `/etc/nginx/nginx.conf`.
+  - Dependencias: Este servicio depende de los servicios "test", "trafico" y "tiempo", lo que significa que esos servicios deben estar disponibles antes de que este servicio se inicie correctamente.
+
+
+Por otro lado, tenemos el archivo `nginx.conf`. Aquí se especifica la configuración del balanceador de cargas.
+Este archivo de configuración de NGINX establece un servidor HTTP que escucha en el puerto 80. Las solicitudes entrantes se dirigen a diferentes servidores backend según la parte de la URL solicitada. Si la URL contiene "/test", NGINX redirige la solicitud al servidor backend "test" en el puerto 5000, si contine "/trafico" a "trafico" en el puerto 5001 y si contiene "/tiempo" a "tiempo" en el puerto 5002.
+
+
+Para lanzar el servicio, utilizamos el siguiente comando:
+```bash
+docker-compose up -d
+```
+
+
+Para comprobar los contenedores lanzados utilizamos `docker-compose ps`, que organiza la salida en base a servicios.
+```bash
+$ docker-compose ps
+          Name                        Command               State                  Ports                
+--------------------------------------------------------------------------------------------------------
+ipmd-practica1_nginx_1     /docker-entrypoint.sh ngin ...   Up      0.0.0.0:8080->80/tcp,:::8080->80/tcp
+ipmd-practica1_test_1      gunicorn -b 0.0.0.0:5000 m ...   Up      80/tcp                              
+ipmd-practica1_tiempo_1    gunicorn -b 0.0.0.0:5002 m ...   Up      80/tcp                              
+ipmd-practica1_tiempo_2    gunicorn -b 0.0.0.0:5002 m ...   Up      80/tcp                              
+ipmd-practica1_trafico_1   gunicorn -b 0.0.0.0:5001 m ...   Up      80/tcp                              
+ipmd-practica1_trafico_2   gunicorn -b 0.0.0.0:5001 m ...   Up      80/tcp                              
+ipmd-practica1_trafico_3   gunicorn -b 0.0.0.0:5001 m ...   Up      80/tcp    
+```
 
 ## Parte 4 - Kubernetes
 
