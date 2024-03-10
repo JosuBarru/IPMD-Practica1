@@ -18,8 +18,6 @@ Se deben tener en cuenta consideraciones importantes como el uso de servidores r
 
 ## Parte 1 - Ejecución directa
 
-## Parte 1 - Ejecución directa
-
 En esta sección se realiza la implementación y pruebas del servicio web utilizando Flask, para posteriormente migrarlo a Gunicorn. Todas las pruebas se realizan sin utilizar contenedores. Para esta tarea se ha creado el archivo [main.py](./main.py). El programa está dividido en tres partes:
 
 - **Test**: una función simple que permite verificar rápidamente el funcionamiento del servidor.
