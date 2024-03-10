@@ -49,9 +49,9 @@ En esta parte debíamos construir una imagen de contenedor que permita la ejecuc
 Para crear la imagen y ejecutar el contenedor deberemos hacer lo siguiente:
 
 ```bash
-docker build -t <NombreContenedor> .
+docker build -t <NombreImagen> .
 export APIKEY=<APIKEY>
-docker run --rm -d --name=servicio -p 8080:80 -e APIKEY <NombreContenedor>
+docker run --rm -d --name=servicio -p 8080:80 -e APIKEY <NombreImagen>
 ```
 ## Parte 3 - Docker compose
 Preparar la aplicación anterior para su funcionamiento con docker compose, teniendo en cuenta estas restricciones:
@@ -123,7 +123,7 @@ Se han implementado dos versiones del servicio, en ambas se trabaja con una imag
 Para el manejo de información sensible, como las claves de las APIs, se ha utilizado secrets de kubernetes, para ello se ha creado un archivo [secrets.yaml](./secrets.yaml) que define los secretos necesarios para el servicio web, que será más tarde montado en una variable de entorno en el deployment del servicio web. Para crear los secretos, se ha ejecutado el comando `kubectl apply -f secrets.yaml`.
 
 ### Servicios idénticos
-Para esta primera versión se pedía desplegar n instancias del servicio web, cada una con un endpoint diferente, y un balanceador de carga que distribuyera las peticiones entre los tres servicios. Para ello, se ha creado el archivo [serviciosIdenticos.yaml](./serviciosIdenticos.yaml) que define un deployment con tres pods del servicio web y un servicio de tipo LoadBalancer que actúa como balanceador de carga entre los nodos (aunque en este caso solo hay uno) y los tres pods. Se crea el cluster con el comando `minikube start` y se realiza el despliegue con el comando `kubectl apply -f serviciosIdenticos.yaml`. 
+Para esta primera versión se pedía desplegar n instancias del servicio web, cada una con un endpoint diferente, y un balanceador de carga que distribuyera las peticiones entre los tres servicios. Para ello, se ha creado el archivo [servidoresIdenticos.yaml](./servidoresIdenticos.yaml) que define un deployment con tres pods del servicio web y un servicio de tipo LoadBalancer que actúa como balanceador de carga entre los nodos (aunque en este caso solo hay uno) y los tres pods. Se crea el cluster con el comando `minikube start` y se realiza el despliegue con el comando `kubectl apply -f servidoresIdenticos.yaml`. 
 
 Un servicio LoadBalancer no expone el servicio a través de una dirección IP, sino que delega en el proveedor de la nube para que asigne una dirección IP. En el caso de minikube, que es un clúster local, no se asigna una dirección IP, por lo que no se puede acceder al servicio desde el exterior. Para solucionar esto, es necesario crear un tunel con el comando `minikube tunnel`, que asigna una dirección IP a los servicios de tipo LoadBalancer.
 
@@ -158,11 +158,11 @@ curl 10.96.82.214/test
 ``` 
 
 ### Servicios especializados
-Para esta segunda versión se pedía desplegar 1 instancia de /test, n instancias de /trafico y m instancias de /tiempo. Para ello, se ha creado el archivo [serviciosEspecializados.yaml](./serviciosEspecializados.yaml) que define un deployment con un pod del servicio web para /test, un deployment con 3 pods del servicio web para /trafico y un deployment con 4 pods del servicio web para /tiempo, cada uno de estos deployments con su correspondiente servicio de tipo ClusterIP para poder acceder a ellos desde el exterior. Además, se ha creado un servicio de tipo Ingress que actúa como balanceador de carga entre los tres servicios, teniendo en cuenta la URL de la petición para redirigirla al pod correspondiente.
+Para esta segunda versión se pedía desplegar 1 instancia de /test, n instancias de /trafico y m instancias de /tiempo. Para ello, se ha creado el archivo [servidoresEspecializados.yaml](./servidoresEspecializados.yaml) que define un deployment con un pod del servicio web para /test, un deployment con 3 pods del servicio web para /trafico y un deployment con 4 pods del servicio web para /tiempo, cada uno de estos deployments con su correspondiente servicio de tipo ClusterIP para poder acceder a ellos desde el exterior. Además, se ha creado un servicio de tipo Ingress que actúa como balanceador de carga entre los tres servicios, teniendo en cuenta la URL de la petición para redirigirla al pod correspondiente.
 
 Un ingress requiere que en el clúster esté instalado un controlador de ingreso. Por ejemplo, en minikube, el comando `minikube addons enable ingress` activa un controlador de ingreso basado en Nginx, ver https://kubernetes.io/docs/tasks/access-application-cluster/ingress-minikube/
 
-Para realizar el despliegue, se ha ejecutado el comando `kubectl apply -f serviciosEspecializados.yaml`.
+Para realizar el despliegue, se ha ejecutado el comando `kubectl apply -f servidoresEspecializados.yaml`.
 
 Ahora, al ejecutar el comando `kubectl get ingress` deberíamos ver la dirección IP asignada al servicio.
 
@@ -171,7 +171,7 @@ $ kubectl get ingress
 NAME            CLASS   HOSTS             ADDRESS         PORTS   AGE
 nginx-ingress   nginx   aplicacion.com    192.168.49.2    80      13m
 ```
-Y, tras mapear en el archivo /etc/hosts la dirección IP al dominio aplicacion.com, que es el dominio que hemos definido en el archivo [serviciosEspecializados.yaml](./serviciosEspecializados.yaml), se puede acceder localmente a la aplicación mediante el dominio.
+Y, tras mapear en el archivo /etc/hosts la dirección IP al dominio aplicacion.com, que es el dominio que hemos definido en el archivo [servidoresEspecializados.yaml](./servidoresEspecializados.yaml), se puede acceder localmente a la aplicación mediante el dominio.
 
 ```bash 
 curl aplicacion.com/tiempo/Bilbao
@@ -194,8 +194,8 @@ aks-agentpool-28800719-vmss000002   Ready    agent   19m   v1.27.9
 aks-agentpool-28800719-vmss000003   Ready    agent   19m   v1.27.9
 ```
 
-Podemos ver como el clúster de Azure tiene dos nodos. Ahora, para desplegar la aplicación definida en el archivo [serviciosIdenticos.yaml](./serviciosIdenticos.yaml)
-en el clúster de Azure, tan solo tenemos que ejecutar el comando `kubectl apply -f serviciosIdenticos.yaml`.
+Podemos ver como el clúster de Azure tiene dos nodos. Ahora, para desplegar la aplicación definida en el archivo [servidoresIdenticos.yaml](./servidoresIdenticos.yaml)
+en el clúster de Azure, tan solo tenemos que ejecutar el comando `kubectl apply -f servidoresIdenticos.yaml`.
 
 
 Para probar que la aplicación se ha desplegado correctamente, podemos ejecutar el comando `kubectl get pods` para ver los pods que se han creado.
@@ -209,7 +209,7 @@ nginx-deployment-dc7d787-wn29d   1/1     Running   0          16m
 
 En un principio estabamos usando un servicio NodePort, y al estar trabajando con un servicio cloud, para acceder a la aplicación necesitamos saber la IP pública uno de los nodos y el puerto que se ha asignado al servicio. Para ello, ejecutamos el comando `kubectl get services` y buscamos el servicio que nos interesa. No obstante, por defecto los nodos en AKS solo tienen IPs privadas, por lo que los servicios de tipo NodePort no serán accesibles desde fuera del clúster, ver https://learn.microsoft.com/en-us/answers/questions/200402/how-to-publish-services-on-aks-with-nodeport-servi
 
-Por lo tanto, decidimos cambiar el servicio a uno de tipo LoadBalancer, que nos proporciona una IP pública para acceder a la aplicación y, además, actúa como balanceador de carga no solo para los pods del servicio, sino también para los nodos (que en este caso hay dos). Para ello, modificamos el archivo [serviciosIdenticos.yaml](./serviciosIdenticos.yaml) y cambiamos el tipo de servicio a LoadBalancer.
+Por lo tanto, decidimos cambiar el servicio a uno de tipo LoadBalancer, que nos proporciona una IP pública para acceder a la aplicación y, además, actúa como balanceador de carga no solo para los pods del servicio, sino también para los nodos (que en este caso hay dos). Para ello, modificamos el archivo [servidoresIdenticos.yaml](./servidoresIdenticos.yaml) y cambiamos el tipo de servicio a LoadBalancer.
 
 Ahora, al ejecutar el comando `kubectl get services` deberíamos ver la IP pública asignada al servicio.
 
@@ -228,7 +228,7 @@ curl 172.214.13.251/tiempo/donostia
 ```
 
 
-Para la versión de servicios especializados, se ha creado el archivo [serviciosEspecializados.yaml](./serviciosEspecializados.yaml) y se ha desplegado de la misma manera que el anterior.
+Para la versión de servicios especializados, se ha creado el archivo [servidoresEspecializados.yaml](./servidoresEspecializados.yaml) y se ha desplegado de la misma manera que el anterior.
 
 En este caso, tenemos que tener en cuenta que el servicio de tipo Ingress necesita una IP pública para poder acceder a él. Para ello, ejecutamos el comando `kubectl get ingress` y buscamos el servicio que nos interesa.
 
@@ -261,7 +261,7 @@ NAME            CLASS   HOSTS             ADDRESS         PORTS   AGE
 nginx-ingress   nginx   aplicacion.com    57.151.8.80     80      13m
 ```
 
-Ahora que sabemos la dirección IP, podemos mapear en el archivo /etc/hosts la dirección IP al dominio aplicacion.com, que es el dominio que hemos definido en el archivo [serviciosEspecializados.yaml](./serviciosEspecializados.yaml), y acceder a la aplicación desde el navegador. Para que la aplicación sea accesible por todo el mundo solo nos haria falta contratar un dominio y asignarle la dirección IP que nos ha proporcionado Azure.
+Ahora que sabemos la dirección IP, podemos mapear en el archivo /etc/hosts la dirección IP al dominio aplicacion.com, que es el dominio que hemos definido en el archivo [servidoresEspecializados.yaml](./servidoresEspecializados.yaml), y acceder a la aplicación desde el navegador. Para que la aplicación sea accesible por todo el mundo solo nos haria falta contratar un dominio y asignarle la dirección IP que nos ha proporcionado Azure.
 
 ```bash
 curl aplicacion.com/tiempo/Bilbao
