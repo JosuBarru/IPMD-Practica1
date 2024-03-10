@@ -20,9 +20,9 @@ Se deben tener en cuenta consideraciones importantes como el uso de servidores r
 
 En esta sección se realiza la implementación y pruebas del servicio web utilizando Flask, para posteriormente migrarlo a Gunicorn. Todas las pruebas se realizan sin utilizar contenedores. Para esta tarea se ha creado el archivo [main.py](./main.py). El programa está dividido en tres partes:
 
-- **Test**: una función simple que permite verificar rápidamente el funcionamiento del servidor.
-- **Tráfico**: una función que, dado el nombre de una autopista de la lista de autopistas disponibles, accede a las incidencias de esta y las devuelve.
-- **Tiempo**: una función que devuelve las temperaturas máximas y mínimas de alguna de las tres capitales de Euskadi. Para ello, simplemente se proporciona el nombre de la ciudad, que se mapea al código correspondiente y se accede a los valores de las temperaturas en AEMET. Además, esta función utiliza la función `get_api_key()`, que accede al valor de la API key utilizando la variable de entorno `APIKEY`. Esto cobrará más sentido en las siguientes partes del proyecto, donde la trataremos como un secreto en Docker. Por el momento, es importante tener en cuenta que para poder ejecutarla, primero debemos hacer `export APIKEY=<APIKEY>`.
+- **test()**: una función simple que permite verificar rápidamente el funcionamiento del servidor.
+- **trafico()**: una función que, dado el nombre de una autopista de la lista de autopistas disponibles, accede a las incidencias de esta y las devuelve.
+- **tiempo()**: una función que devuelve las temperaturas máximas y mínimas de alguna de las tres capitales de Euskadi. Para ello, simplemente se proporciona el nombre de la ciudad, que se mapea al código correspondiente y se accede a los valores de las temperaturas en AEMET. Además, esta función utiliza la función `get_api_key()`, que accede al valor de la API key utilizando la variable de entorno `APIKEY`. Esto cobrará más sentido en las siguientes partes del proyecto, donde la trataremos como un secreto en Docker. Por el momento, es importante tener en cuenta que para poder ejecutarla, primero debemos hacer `export APIKEY=<APIKEY>`.
 
 Para ejecutar nuestro programa con flask en el puerto 8080 debemos hacer lo siguiente:
 
@@ -37,7 +37,17 @@ gunicorn -b 0.0.0.0:8080 main:app
 
 
 ## Parte 2 - Aplicación en un contenedor
-Describir Dockerfile
+En esta parte debíamos construir una imagen de contenedor que permita la ejecución de la aplicación anterior, usando un Dockerfile. Por tanto, hemos creado el [Dockerfile](./Dockerfile) correspondiente. Esto es lo que hace:
+
+1. Se elige la imagen base de Python 3, que esta basada en debian, desde la que se construirá la imagen.
+2. Se establece el directorio de trabajo dentro del contenedor en `/app`.
+3. Se copian los archivos [main.py](./main.py) y [requirements.txt](./requirements.txt) desde el directorio de construcción del contexto de Docker al directorio `/app` dentro del contenedor. En `requirements.txt` se encuentran todas las dependencias que necesitaremos para que todo funcione correctamente.
+4. Se instalan las dependencias definidas en `requirements.txt` utilizando pip, asegurando que todas las bibliotecas necesarias estén disponibles para el proyecto.
+5. Se expone el puerto 80 para permitir la comunicación con el exterior.
+6. Se define el comando para ejecutar la aplicación, que utiliza Gunicorn para servir la aplicación Flask (`main:app`) en todas las interfaces en el puerto 80 dentro del contenedor.
+
+Para crear la imagen y ejecutar el contenedor deberemos hacer lo siguiente:
+
 ```bash
 docker build -t <NombreContenedor> .
 export APIKEY=<APIKEY>
